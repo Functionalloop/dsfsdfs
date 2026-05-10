@@ -4,17 +4,53 @@ import {
   Calendar, Users, Camera, MapPin, Footprints, Sailboat, 
   Plane, Bed, Plus, Loader2
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 
+const mockDestinations = [
+  { id: '1', name: 'Paris, France', description: 'Experience the magic of Paris with curated visits to iconic landmarks, hidden cafes, and romantic Seine cruises.', country: 'France', image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&q=80&w=300' },
+  { id: '2', name: 'Tokyo, Japan', description: 'Dive deep into Japanese culture with temple visits, tea ceremonies, and authentic culinary experiences.', country: 'Japan', image: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&q=80&w=300' },
+  { id: '3', name: 'Bali, Indonesia', description: 'A rejuvenating week of yoga, spa treatments, and exploring Bali\'s stunning rice terraces.', country: 'Indonesia', image: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&q=80&w=300' },
+  { id: '4', name: 'New York City, USA', description: 'The city that never sleeps. Catch a Broadway show, stroll through Central Park, and explore world-class museums.', country: 'USA', image: 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?auto=format&fit=crop&q=80&w=300' }
+];
+
+const mockTrips = [
+  {
+    id: 1,
+    title: 'Summer in Kyoto',
+    status: 'Ongoing',
+    startDate: 'Jul 15, 2026',
+    endDate: 'Jul 28, 2026',
+    destination: 'Kyoto, Japan',
+    imageUrl: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=600&auto=format&fit=crop',
+  },
+  {
+    id: 2,
+    title: 'Swiss Alps Hiking',
+    status: 'Upcoming',
+    startDate: 'Sep 05, 2026',
+    endDate: 'Sep 12, 2026',
+    destination: 'Zermatt, Switzerland',
+    imageUrl: 'https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99?q=80&w=600&auto=format&fit=crop',
+  }
+];
+
+
 export default function Home() {
   const { currentUser } = useAuth();
+  const navigate = useNavigate();
   const [destinations, setDestinations] = useState<any[]>([]);
   const [loadingRegions, setLoadingRegions] = useState(true);
   const [myTrips, setMyTrips] = useState<any[]>([]);
   const [loadingTrips, setLoadingTrips] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const handleSearch = () => {
+    // Navigate to city search with query parameter as a mock search implementation
+    navigate(`/city-search?q=${encodeURIComponent(searchQuery)}`);
+  };
 
   useEffect(() => {
     const fetchDestinations = async () => {
@@ -24,9 +60,15 @@ export default function Home() {
         querySnapshot.forEach((docSnap) => {
           fetchedDests.push({ id: docSnap.id, ...docSnap.data() });
         });
-        setDestinations(fetchedDests.slice(0, 4)); // Show top 4
+        
+        if (fetchedDests.length === 0) {
+          setDestinations(mockDestinations.slice(0, 4));
+        } else {
+          setDestinations(fetchedDests.slice(0, 4)); // Show top 4
+        }
       } catch (err) {
         console.error("Failed to fetch destinations:", err);
+        setDestinations(mockDestinations.slice(0, 4));
       } finally {
         setLoadingRegions(false);
       }
@@ -43,9 +85,15 @@ export default function Home() {
         querySnapshot.forEach((docSnap) => {
           fetchedTrips.push({ id: docSnap.id, ...docSnap.data() });
         });
-        setMyTrips(fetchedTrips.slice(0, 3)); // Show up to 3 trips
+        
+        if (fetchedTrips.length === 0) {
+          setMyTrips(mockTrips.slice(0, 3));
+        } else {
+          setMyTrips(fetchedTrips.slice(0, 3)); // Show up to 3 trips
+        }
       } catch (err) {
         console.error("Failed to fetch trips:", err);
+        setMyTrips(mockTrips.slice(0, 3));
       } finally {
         setLoadingTrips(false);
       }
@@ -81,6 +129,9 @@ export default function Home() {
                 <Search className="text-gray-400 w-5 h-5 mr-3" />
                 <input 
                   type="text" 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                   placeholder="Where do you want to go?" 
                   className="w-full bg-transparent border-none focus:ring-0 text-gray-800 text-lg placeholder-gray-400 py-3 outline-none"
                 />
@@ -93,7 +144,9 @@ export default function Home() {
                   Filter <SlidersHorizontal className="w-4 h-4 ml-1" />
                 </button>
               </div>
-              <button className="bg-[#65a30d] text-white px-8 py-3.5 rounded-full font-semibold hover:bg-[#4d7c0f] transition-colors ml-2 shadow-sm whitespace-nowrap">
+              <button 
+                onClick={handleSearch}
+                className="bg-[#65a30d] text-white px-8 py-3.5 rounded-full font-semibold hover:bg-[#4d7c0f] transition-colors ml-2 shadow-sm whitespace-nowrap">
                 Search
               </button>
             </div>

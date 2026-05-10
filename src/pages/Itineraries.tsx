@@ -26,6 +26,37 @@ interface Itinerary {
   tag?: string;
 }
 
+const mockItineraries: Itinerary[] = [
+  {
+    id: 1,
+    title: 'Summer in Kyoto',
+    status: 'Ongoing',
+    startDate: 'Jul 15, 2026',
+    endDate: 'Jul 28, 2026',
+    description: 'Exploring temples, traditional tea houses, and the bamboo forest in Arashiyama.',
+    imageUrl: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=600&auto=format&fit=crop',
+    members: ['A', 'J'],
+    badge: 'Day 3 of 14',
+  },
+  {
+    id: 2,
+    title: 'Swiss Alps Hiking',
+    status: 'Upcoming',
+    startDate: 'Sep 05, 2026',
+    endDate: 'Sep 12, 2026',
+    imageUrl: 'https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99?q=80&w=600&auto=format&fit=crop',
+    daysAway: '42 Days Away',
+    tag: 'Adventure',
+  },
+  {
+    id: 3,
+    title: 'Weekend in New York',
+    status: 'Completed',
+    date: 'Dec 10 - Dec 12, 2025',
+    imageUrl: 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?q=80&w=600&auto=format&fit=crop',
+  }
+];
+
 interface GroupedItineraries {
   ongoing: Itinerary[];
   upcoming: Itinerary[];
@@ -52,6 +83,10 @@ export default function Itineraries() {
           dbTrips.push({ id: doc.id as any, ...doc.data() } as Itinerary);
         });
 
+        if (dbTrips.length === 0) {
+          dbTrips.push(...mockItineraries);
+        }
+
         const dbOngoing = dbTrips.filter(t => t.status === 'Ongoing');
         const dbUpcoming = dbTrips.filter(t => t.status === 'Upcoming');
         const dbCompleted = dbTrips.filter(t => t.status === 'Completed');
@@ -63,6 +98,14 @@ export default function Itineraries() {
         });
       } catch (err) {
         console.error('Failed to fetch itineraries:', err);
+        const dbOngoing = mockItineraries.filter(t => t.status === 'Ongoing');
+        const dbUpcoming = mockItineraries.filter(t => t.status === 'Upcoming');
+        const dbCompleted = mockItineraries.filter(t => t.status === 'Completed');
+        setData({
+          ongoing: dbOngoing,
+          upcoming: dbUpcoming,
+          completed: dbCompleted
+        });
       } finally {
         setLoading(false);
       }

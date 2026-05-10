@@ -82,9 +82,20 @@ export default function AdminTrips() {
       querySnapshot.forEach((docSnap) => {
         fetchedTrips.push({ id: docSnap.id, ...docSnap.data() } as Trip);
       });
-      setTrips(fetchedTrips);
+      
+      if (fetchedTrips.length === 0) {
+        // Auto-seed mock data
+        for (const trip of mockTrips) {
+          await setDoc(doc(db, 'itineraries', trip.id), trip);
+        }
+        setTrips(mockTrips);
+      } else {
+        setTrips(fetchedTrips);
+      }
     } catch (err) {
       console.error("Failed to fetch trips:", err);
+      // Fallback to mock data
+      setTrips(mockTrips);
     } finally {
       setLoading(false);
     }

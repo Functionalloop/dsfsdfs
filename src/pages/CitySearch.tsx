@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Search, MapPin, DollarSign, TrendingUp, Plus, Filter, Globe, Star } from 'lucide-react';
 
 interface City {
@@ -32,10 +33,17 @@ const regions = ['All', 'Europe', 'Asia Pacific', 'Americas', 'Africa'];
 const costLevels = ['All', 'Budget', 'Moderate', 'Expensive', 'Premium'];
 
 export default function CitySearch() {
-  const [query, setQuery] = useState('');
+  const [searchParams] = useSearchParams();
+  const initialQuery = searchParams.get('q') || '';
+  const [query, setQuery] = useState(initialQuery);
   const [selectedRegion, setSelectedRegion] = useState('All');
   const [selectedCost, setSelectedCost] = useState('All');
   const [addedCities, setAddedCities] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    const q = searchParams.get('q');
+    if (q) setQuery(q);
+  }, [searchParams]);
 
   const filtered = allCities.filter(city => {
     const matchesQuery = city.name.toLowerCase().includes(query.toLowerCase()) ||

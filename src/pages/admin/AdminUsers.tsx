@@ -4,7 +4,7 @@ import {
   Ban, Trash2, Eye, MapPin, Calendar, X,
   ChevronLeft, ChevronRight, UserCheck, UserX, Loader2
 } from 'lucide-react';
-import { collection, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, updateDoc, deleteDoc, setDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
 
 interface UserData {
@@ -45,9 +45,20 @@ export default function AdminUsers() {
       querySnapshot.forEach((docSnap) => {
         fetchedUsers.push({ id: docSnap.id, ...docSnap.data() } as UserData);
       });
-      setUsers(fetchedUsers);
+      
+      if (fetchedUsers.length === 0) {
+        // Auto-seed mock data
+        for (const user of mockUsers) {
+          await setDoc(doc(db, 'users', user.id), user);
+        }
+        setUsers(mockUsers);
+      } else {
+        setUsers(fetchedUsers);
+      }
     } catch (err) {
       console.error("Failed to fetch users:", err);
+      // Fallback to mock data if Firebase fails
+      setUsers(mockUsers);
     } finally {
       setLoading(false);
     }
